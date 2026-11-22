@@ -22,7 +22,7 @@ BioOpt｜保持科学结果的算法性能优化 Skill
 
 ## Demo 链接
 
-[下载或查看 Demo 文件](https://github.com/LJZYlinpr/Bio-Opt/blob/main/docs/index.html)。下载后用浏览器离线打开 `index.html`，方向键翻页。也可克隆仓库后打开 `docs/index.html`。
+[在线 Demo](https://ljzylinpr.github.io/Bio-Opt/)。现场网络不稳定时可[下载 HTML](https://github.com/LJZYlinpr/Bio-Opt/raw/refs/heads/main/docs/index.html)，用浏览器离线打开，方向键翻页。
 
 ## 代码仓库
 
