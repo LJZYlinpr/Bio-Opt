@@ -1,32 +1,32 @@
-# CPU/GPU 等价性审查轨迹
+# CPU/GPU equivalence audit
 
-**贡献来源。** 团队成员提供的 [原始审查包](cpu-gpu-equivalence-audit.zip) 含一份 Skill、等价标准、基准模板、SpaceTracer 静态分区笔记和三个评测输入。此条收入 Agent 轨迹库，证据类型是**审查与实验设计**。原包的三个评测条目是测试请求和预期回答。
+A team member contributed the [original audit package](cpu-gpu-equivalence-audit.zip). It contains a skill, equivalence criteria, a benchmark template, SpaceTracer static partition notes, and three evaluation prompts with expected response characteristics. The case documents an audit method and experiment design.
 
-## 为什么先静态分区
+## Why partition the workflow before migrating it?
 
-仅有论文时，同一段数学看起来可以放 GPU，真实的调用、格式转换与数据量仍未知。若动态准备主导成本，把后半段的固定小算子搬到 GPU 可能加出同步和传输，整体更慢。把每个区块的输入、输出、顺序依赖先画出来，可以提出两类可区分的候选：减少设备往返，或迁移真正有足够工作量的数值热点。现阶段以获得可审计实现和基线为晋级条件。
+A paper can suggest that some mathematics is suitable for GPU execution while leaving actual call boundaries, format conversions, and data volume unknown. If dynamic preparation dominates, moving a small operation can add enough synchronization and transfer to increase total time. Mapping inputs, outputs, and ordering dependencies exposes two testable options. Reduce device transfers, or migrate a numerical hotspot with sufficient workload. Proceed to experiments once the implementation and baseline can be inspected.
 
-## 从问题到验证设计
+## Turn those observations into verification
 
-1. **确认实际设备边界。** 从入口记录每个区块的输入、输出、设备、数据型别、随机性、是否依赖上游顺序，以及经过设备边界的数据量。把 CPU 準备、GPU 算子、同步、回传与写出列在同一张表。只有论文时，用静态分析指出候选和需要补齐的源码、数据或环境。
-2. **按风险安排候选。** 先找可省的传输和固定中间量，再比较同后端的批处理，最后检验跨设备算子。若候选改变精度、随机抽样、迭代预算或任务输出，按变体另行评估。
-3. **定义等价证据。** 按任务从下表选择验收等级，并在运行前冻结指标。先对关键中间输出查找第一个差异位置，再验证持久化结果。固定同一 seed 时仍要清点随机过程是否使用相同输入与顺序。
-4. **两阶段试验。** 小试固定输入和有感知风险的中间量，核对输出，判断能否放大。扩大后记录端到端时间、初始化、同步与数据传输，测主机内存和设备峰值；有重复数据才估计分散程度。速度门槛按当前任务、目标与测量波动事先约定。
-5. **记录决策。** 给每个改动编号，记文件、区块、基线设备、候选设备、证据路径与回退理由。结论有“可实施”“待测”“失败”“通过某级”之分。即使观察到速度收益，也必须单列正确性判定。
+1. **Locate device boundaries.** For each stage, record inputs, outputs, device, dtypes, randomness, dependence on upstream ordering, and transfer volume. Include CPU preparation, GPU operations, synchronization, host transfers, and writing in the same table. When only the paper is available, use static analysis to propose candidates and identify missing code, data, or environments.
+2. **Order candidates by risk.** Look for avoidable transfers and reusable intermediates, then compare batching on the same backend and evaluate migrating operations across devices. Handle changes to precision, sampling, iteration budget, or scientific outputs as separate variants.
+3. **Define equivalence.** Pick a level from the table and freeze acceptance criteria before running. Find the first difference in critical intermediates, then verify persisted outputs. Check random inputs and draw order even when the seed matches.
+4. **Use two stages of testing.** Pilot with fixed inputs and sensitive intermediates. If outputs pass, expand the workload and record end-to-end time, initialization, transfers, synchronization, host memory, and peak device memory. Estimate variability from repeated runs. Set the speed criterion in advance based on task objectives and expected measurement variation.
+5. **Record decisions.** Identify each change by ID, file, stage, original and candidate devices, evidence path, and rollback reason. Mark feasibility, pending tests, failures, and the equivalence level each passing candidate reached. Record correctness separately from speed.
 
-| 等价等级 | 足以支持这个等级的证据 |
+| Equivalence level | Sufficient evidence |
 |---|---|
-| 文件字节或内存位模式 | 声明比较对象，比较原始字节或位模式，记录元数据和形状。文件与内存可有不同结论。 |
-| 数值等价 | 在预定绝对和相对误差内通过，记录最大误差和任务关键结构。 |
-| 下游等价 | 稳定的任务指标和既定阈值通过，记录对应下游范围。 |
-| 未证明 | 只有静态推断、性能或显示结果，需补独立对照。 |
+| File bytes or in-memory bit patterns | Specify the object, compare the bytes or bit patterns, and record metadata and shapes. File and memory checks can give different results. |
+| Numerical equivalence | Meet predefined absolute and relative tolerances and report maximum error and critical structure checks. |
+| Downstream equivalence | Pass the agreed thresholds on stable task metrics and state the downstream scope. |
+| Unverified | Static arguments, speed, or visual inspection require an independent comparison. |
 
-## 一个可证伪的迁移判据
+## A proposed experiment for device migration
 
-回看可先设计三路对照：原版、只改数据搬运、数据搬运加 GPU 算子。同一试验冻结上游中间量和关键随机决策。若只改搬运就有效，先保留低风险方案；若算子快而全程慢，检查数据准备、回传和同步；若固定输入下初次分歧在数值算子，依据事先合同判断误差，先确认能否保留正确性。这个对照将“设备更快”和“应用更快”落到两个可分别验证的问题。这是复盘给出的设计，原包没有执行它。
+Compare three paths with fixed upstream intermediates and random decisions. Run the original, a transfer-only change, and that change combined with the GPU operation. If transfer-only changes already help, keep that lower-risk candidate in contention. If operation time falls and total time rises, measure preparation, host transfers, and synchronization. If the operation is the first point of numerical divergence, judge the difference against the predefined criteria. This retrospective design can distinguish device-level and application-level gains. It remains a proposed experiment.
 
-## SpaceTracer 静态案例怎么读
+## SpaceTracer static case
 
-团队成员从论文方法中提取了数据准备、动态分组与规则、固定形状数值子步骤和下游汇总的边界。优先保留输入解析、动态分组和外部程序原路径；对固定输入的批量统计或模型运算提 GPU 候选。迁移前先保存上游分组、抽样和固化的输入，分别检查前后关键阶段和最终产物。不同实现的归约、排序与随机消耗需要专门测试。
+The contributor partitioned the method described in the paper into data preparation, dynamic groups and rules, fixed-shape numerical work, and downstream aggregation. Initial GPU candidates are batch statistics or model operations with fixed inputs. Preserve input parsing, dynamic grouping, and external program calls during the first comparison. Save upstream groups, samples, and fixed inputs before migration, and compare both boundary outputs and final artifacts. Test reduction, ordering, and random draw behavior across implementations explicitly.
 
-附录记录的是当时的来源核验和待验证工作。原包没有为这条 SpaceTracer CPU→GPU 路线提供可重跑的优化补丁、设备配对耗时或通过等价检查的收据。本库将其作为**静态分区案例**，不据此给出加速倍数。将它迁移到新任务时，重新核对可用源码、环境和用户指定的重点，再按主 Skill 的基线与实验流程推进。
+The package documents source checks and pending work. It contains a static partition study. A rerunnable SpaceTracer migration patch, paired device timings, and passing equivalence results remain to be produced.

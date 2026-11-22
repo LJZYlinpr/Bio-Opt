@@ -1,6 +1,6 @@
-# 可执行配对与记录
+# Paired benchmarks and evidence
 
-在已分配的 Linux 计算环境中执行。准备两个产物独立写出的非交互命令和一个独立验证命令。路径相对当前目录解析。可从官方入口构建薄适配层，适配层与调用参数必须留档。
+Run in an allocated Linux compute environment. Prepare two noninteractive commands that write separate outputs and an independent validation command. Relative paths resolve from the current directory. A thin adapter can wrap an official entry point. Archive the adapter and its arguments.
 
 ```json
 {
@@ -22,14 +22,14 @@
 python /path/to/skill/scripts/paired_commands.py case.json --out evidence/pair-01
 ```
 
-需要实测基线稳定性时，可用两条相同的基线命令运行自比较。正式配对要使用另一处新目录，并逐对使用独立的输出与验证。复现工具记录输入哈希，可能预热文件缓存。若需要测冷启动或预先加载的共享成本，说明冷热策略，单列实测共享成本与合成总用时。运行时峰值 RSS 为 Linux wait4 观测，设备峰值和并行进程聚合内存需要方法自己的测量。完整计时包含命令启动和输出写盘，验证运行单独计时。
+To measure baseline repeatability, give the [paired command runner](../scripts/paired_commands.py) two identical baseline commands. Use a fresh directory for formal comparisons and validate each pair of outputs independently. The runner hashes inputs, which can warm the file cache. For cold-start comparisons or inputs shared across runs, specify the warm-up policy and report any measured shared setup costs and the resulting workflow time separately. Peak RSS comes from Linux `wait4`. Measure device peaks and aggregate memory across processes with workload-specific tools. Command timing includes startup and writing outputs. Validation is timed separately.
 
-NumPy 校验器默认比较字段、形状、dtype 和内容位模式，并拒绝非有限浮点与 pickle 数据。只有逐字段授权了容差时才用 `--float-key` 和 `--atol`/`--rtol`。遇到需要特殊语义处理的输出格式，使用独立的格式专用比较器并指定合同。比较器须在失败时返回非零。
+The [NumPy comparator](../scripts/compare_numpy.py) defaults to comparing output keys, shapes, dtypes, and bit patterns. It rejects nonfinite floating-point values and pickled data. Use `--float-key` with `--atol` or `--rtol` only for fields with explicitly approved tolerances. For output formats with special semantics, specify the acceptance criteria and use an independent format-specific comparator. A validation failure must return a nonzero exit status.
 
-## 保存的结果
+## Records to save
 
-- 官方小试来源、提交、输入哈希、命令、环境、patch、设备与资源。
-- 测量边界、计入的准备工作、每对顺序和各轮原始值、计时中位数及变动范围、峰值内存。
-- 已冻结的科学合同、独立验证的字段及差异、拒绝的候选与接受依据。
-- 批量运行保留任务、实现和实验条件记录。用明确完成收据支持续跑，失败保留原始错误。若资源不足只完成一次配对，注明次数和暂时性。
-- 若需和普通 Codex 比较优化效果，两侧使用同样的起始提交、科学合同、算力、可用时间和候选试验预算。两侧候选由同一冻结验证器验收，比较通过后的最好结果。
+- The upstream example, commit, input hashes, commands, environment, patch, device, and resources.
+- The timing boundary, included setup, run order, raw measurements, median and variability, and peak memory.
+- The frozen scientific criteria, independently checked fields and differences, rejected candidates, and grounds for acceptance.
+- For batch runs, save task, implementation, and condition records. Use explicit completion records to resume runs and preserve original errors. If resources permit one pair only, report the count and treat the result as provisional.
+- For a comparison with ordinary Codex, use the same starting commit, scientific criteria, compute, time, and candidate trial budget on both sides. Apply the same frozen verifier, then compare the best accepted results.

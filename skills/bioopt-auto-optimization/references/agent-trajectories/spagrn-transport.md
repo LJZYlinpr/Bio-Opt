@@ -1,16 +1,16 @@
-# SpaGRN · 降低多进程的传输成本
+# SpaGRN multiprocessing data transfer
 
-**任务。** 复现官方 hi-res 教程的调控网络推断。预处理后是 13,408 个观测和 9,799 个基因。定位 bivariate 阶段间歇性工作负载，其全量有 2,088,160 个 TF–target 对。
+The experiment reproduced the high-resolution gene regulatory network tutorial. After preprocessing, the data contained 13,408 observations and 9,799 genes. The bivariate stage processed 2,088,160 TF–target pairs and showed intermittent worker activity.
 
-## 为什么先核对任务载荷
+## Why inspect the task payloads first?
 
-有三个待核实的解释：单对统计慢、任务切得太碎，或大矩阵反复跨进程。复盘代码时，每个很小的基因对都携带同一个数百 MB 对象，这是明确的重复工作信号。仅加 worker 可能让序列化和内存争用更严重；重写统计公式会引入额外数值风险。选搬运改造可以保留原 worker，直接检查“相同计算、较少重复搬运”的假设。
+There were three possible bottlenecks. A single pair might be expensive to score, tasks might be too fine-grained, or large matrices might be crossing process boundaries repeatedly. The code showed that each small task carried the same object of several hundred MB. Increasing worker count could intensify serialization and memory contention. Changing the scoring formulas would also introduce numerical risk. The team changed the data transfer path while retaining the original scoring functions and task order to isolate the effect of repeated data movement.
 
-1. **区分计算和搬运。** 实际代码把约 525 MB 的表达矩阵和空间权重塞进逐基因对的任务载荷。测得旧路径约 4.2 个任务每秒。先保留原 Geary/Moran worker 和基因对顺序，隔离传输开销。
-2. **实施。** 在 worker 初始化时传入表达、权重和索引。运行期间只向任务传入成批的基因索引对，再按旧顺序组装邻接表。保留上游计算函数。该方案需要检查每个 worker 的内存；传一次仍可能出现进程间副本。
-3. **等价探针。** Geary 与 Moran 各用同一空间权重和 15 个候选对比较两版。TF 与 target 顺序相同，逐位检查通过，最大绝对差为 0。先查对和顺序再查分数，因为并行返回顺序或索引接错也能产生看似合理的值。这个比较单独验证传输补丁的假设。教程里调整的其他 worker 配额不随之视为已逐项验收。
-4. **正式运行。** 装有传输补丁的 hi-res 教程成功跑出 77 个 regulon，其中 70 个关联 receptor。优化版 bivariate 约 5.5 分钟，教程整体约 40 分钟。旧路径完整运行未完成，约 5.7 天来自已测吞吐外推。这个对照支持传输瓶颈诊断及小样本等价性，旧版全量时间与全网逐项一致仍待同口径验证。
+1. **Separate computation from transfer.** The original code included about 525 MB of expression data and spatial weights in per-pair task payloads. Measured original throughput was about 4.2 tasks per second. Keep the Geary and Moran workers and the pair order fixed.
+2. **Implement the transfer change.** Pass expression, weights, and indices at worker initialization. Dispatch batches of gene index pairs and assemble the adjacency table in original order. Pass-once initialization can still create per-process copies. Check aggregate memory when selecting a worker count.
+3. **Probe exact equivalence.** Use the same spatial weights and 15 candidate pairs for each of Geary and Moran. Check pair identity and order first, since parallel return order and index errors can yield plausible but misassigned values. Both scores matched bit for bit with maximum absolute error zero. This probe isolates the transport patch. Other worker settings used in the tutorial require their own verification.
+4. **Run the tutorial.** The optimized tutorial produced 77 regulons, 70 associated with receptors. The bivariate stage took about 5.5 minutes and the tutorial took about 40 minutes. The original full run was unfinished. Its estimate of about 5.7 days extrapolates from measured throughput.
 
-**证据如何限制决策。** 原路径只有短时吞吐，所以它支持优先修传输，不能用于认定某个全量倍数。全流程输出已在优化版产生，旧版没有配对等价证据。若要确认全量收益，先用同一统计入口、相同资源和多个工作量进行配对，同时测进程聚合内存；初始化共享仍可能在不同进程启动方式下产生副本。
+The throughput observation supports investigating data transfer first. The evidence establishes small-case equivalence and an optimized full run. A matched full-run speedup and network-wide equality require an original run under comparable conditions. Pair several workload sizes through the same entry point and measure aggregate process memory, since process startup modes can copy initialized data differently.
 
-**可迁移经验。** 当多个任务传入同一大对象，先核对实际序列化边界和任务吞吐，单独验证搬运变化；内存预算与科学输出都进入验收。[代码与复现入口](https://github.com/LJZYlinpr/Bio-Opt/tree/main/algorithms/SpaGRN)
+When many tasks carry the same large object, inspect serialization boundaries and throughput. Change transfer in isolation and test both memory use and scientific outputs. [Code and reproduction entry point](https://github.com/LJZYlinpr/Bio-Opt/tree/main/algorithms/SpaGRN)

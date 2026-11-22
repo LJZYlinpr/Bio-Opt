@@ -1,45 +1,51 @@
-# 专家优化轨迹库
+# Expert optimization trajectories
 
-## SpatialZ · 人工设计的优化轨迹
+## SpatialZ manual optimization
 
-**任务与基线。** 根据已测切片的空间坐标与表达，生成目标深度中的细胞位置、细胞类型与基因表达。作者小试使用 MERFISH；生产目标是把同一生成流程扩到 ABCA-1 全序列。先用小试和固定中间量隔离每项改动，再用生成入口验证组合实现。[作者原版、优化代码和验收收据](https://github.com/LJZYlinpr/Bio-Opt/tree/main/algorithms/SpatialZ)
+SpatialZ uses measured spatial coordinates and expression to generate cell positions, cell types, and expression at target depths. The author tutorial uses MERFISH. The production objective was to extend the same generation task to the full ABCA-1 series. The team first used small cases and fixed intermediate outputs to isolate changes, then tested the combined implementation through the generation entry point. [Source, implementation, and verification records](https://github.com/LJZYlinpr/Bio-Opt/tree/main/algorithms/SpatialZ)
 
-下文按可核查的代码、实验和验收重建决策。标为“回看”的内容是对方案取舍的解释。
+The decisions below are reconstructed from code, experiments, and verification records. Retrospective passages explain the reasoning behind the choices.
 
-### 1. 沿数据流找到浪费
+### 1. Trace the data flow to find redundant work
 
-读作者表达合成入口，从候选权重往回追。程序先构造每个参考细胞与每个生成细胞的全量余弦矩阵，再从矩阵中取实际供体的分数。XY 树的近邻请求数上限为 50，因此大部分相似度不会参与抽样。将“哪些值被读取”变成优化的第一条证据。回看有三条可能路线：加速整张矩阵、分块生成整张矩阵、只算实际会读取的分数。GPU 或分块可以降低耗时或峰值，仍要完成参考数 × 查询数次比较。只算候选则把余弦评估上界降到查询数 × 近邻上限。它成立的前提是供体集合由原 XY 查询和类型过滤确定，独立于余弦值。若追到任何需要全局余弦排序的调用，这条路就必须重选。
+Tracing donor weights backward through expression synthesis showed that SpatialZ builds a full cosine similarity matrix for all reference and generated cells. Sampling then reads scores for the eligible donors. The XY tree requests at most 50 neighbors, so most of the scores are never used.
 
-### 2. 把候选规则写成对照
+The retrospective comparison considered accelerating the full matrix, computing it in blocks, or evaluating the scores that sampling reads. GPU execution and blocking can change elapsed time or peak memory while retaining the product of reference and query counts as the number of similarity evaluations. Evaluating candidate scores bounds that work by the query count times the neighbor cap. This is valid because the original XY query and type filter determine donor membership independently of cosine similarity. A consumer that needs global cosine ranking would invalidate the restriction.
 
-作者先用同类型参考细胞数限制近邻请求数，再在**全体参考细胞的 XY 树**中查询，最后筛掉不同类型。直接按类型建树会让一些原本无候选的生成细胞从更远的位置得到供体。后续候选移植小试观察到这类差异，否决了该移植中的重排。它也解释了为什么手工归档中的全局查询顺序需要保留。保留全局树、每类请求数、供体顺序和空候选处理，仅在确定供体后计算余弦。复盘最小反例：查询是少见的 A 类，最近两个参考都是 B 类，较远处有 A 类。原版能留下空候选，同类树会选到远处的 A 类。即使继续用同一个种子，供体变化也足以改变表达；空候选行为不同还可能改变后续随机数消耗。比较候选列表比等完整重建失败更容易定位。
+### 2. Test the donor rule directly
 
-### 3. 拆开数学工作与执行开销
+The original code caps the requested neighbor count by the number of reference cells of that type. It queries the **XY tree over all reference cells**, then filters out mismatched types. A tree built separately for each type can give a distant donor to a generated cell whose original candidate set is empty. A later transfer pilot found this difference and rejected the reordering. The manual implementation preserves the global tree, the per-type request count, donor order, and empty-set handling, then evaluates the eligible cosine scores.
 
-**候选余弦。** 一次规范化参考和查询描述符，沿已选供体计算实际要读取的相似度。按原权重参数构造概率和累积分布，保留索引顺序。
+A minimal retrospective example uses a rare type A query, two nearby B reference cells, and an A reference cell farther away. The original path can return an empty set, while the type-specific tree returns the distant A cell. The changed donor set can alter expression with the same seed. Different empty-set handling can also affect subsequent random draws. Comparing donor lists exposes the divergence before a full reconstruction.
 
-**编译采样。** 原版对每个基因调用一次抽样。候选按原查询与基因顺序用 MT19937 预生成随机数，再用 C++ 遍历累计概率以选择供体，使用 OpenMP 按生成细胞并行。基因从选中的供体取原值。空候选行维持原行为，随机数分配也遵循原抽样顺序。把生成随机数留在有稳定顺序的一侧，是为了让并行 worker 的完成顺序不决定哪个基因拿到哪个随机数。先核验供体、概率和随机数分配这条链，再看表达。回看，候选优先消除多算的相似度，编译采样减少每个基因的解释器调用。两项有不同的因果目标。已有 96.107→0.139 秒是两项合用的测量，无法单凭它分摊各自贡献。
+### 3. Address redundant arithmetic and interpreter overhead
 
-### 4. 逐级验证并扩大计时边界
+**Candidate cosine scores.** Normalize the reference and query descriptors once. Evaluate only scores for selected donors. Use the original weighting parameters to construct probabilities and cumulative distributions, preserving index order.
 
-| 层级 | 固定和比较什么 | 实测结果 |
+**Compiled sampling.** The original samples once per gene through a Python call. The optimized implementation prepares MT19937 draws in the original query and gene order, then selects donors from cumulative probabilities in C++ with OpenMP parallelism across generated cells. Each gene takes the selected donor's original value. Empty candidate rows and random draw assignment follow the original rules. Preparing the draws in stable order makes their assignment independent of worker completion order. Verify donor lists, probabilities, and draw assignment before comparing expression.
+
+Restricting cosine evaluations saves arithmetic. Compiled sampling removes interpreter calls. The measured change from 96.107 to 0.139 seconds includes both changes. Their individual contributions require an ablation.
+
+### 4. Expand verification and timing in stages
+
+| Case | Controls and output checks | Measured result |
 |---|---|---|
-| ABCA-1 40 µm 表达合成 | 固定生成 XY、类型、两张参考片、MENDER 描述符和随机种子。逐元素核对 8,756 × 1,122 的表达矩阵。 | 96.107→0.139 秒，表达差异 0。这是两项优化合用的表达合成收益。 |
-| MERFISH 三组核心生成 | 走作者几何与标签规则，比较每组 XY、类型、MENDER 和表达。使用教程参数 Beta=1、80 随机投影，保留 1,000 次迭代。 | A100 合计 157.229→39.943 秒，三组共 2,612,370 个表达值及其关联输出一致。 |
-| ABCA-1 小窗并行对照 | 核对 4、8 与原 200 个 MENDER 进程的描述符，并比较三层串行和并行采样。 | 选定样本的描述符和表达通过精确比较。worker 配额可随实际资源选择，计时另测。 |
+| ABCA-1 expression synthesis at 40 µm | Fix generated XY, cell types, the two reference slices, MENDER descriptors, and random seed. Compare all elements of the 8,756 × 1,122 expression matrix. | 96.107 to 0.139 seconds. Zero expression differences. This measures both changes within expression synthesis. |
+| Three MERFISH core generation cases | Follow the author's geometry and labeling rules. Compare XY, types, MENDER descriptors, and expression per case. Use tutorial settings Beta=1, 80 random projections, and 1,000 iterations. | 157.229 to 39.943 seconds total on an A100. All 2,612,370 expression values and the associated outputs matched. |
+| ABCA-1 small-window parallel comparison | Compare MENDER descriptors with 4, 8, and the original 200 workers. Compare serial and parallel sampling across three layers. | Descriptors and expression matched exactly in the selected cases. Worker settings can be chosen for available resources and timed separately. |
 
-在消除表达差异后，才扩大到包括几何与 MENDER 的作者入口。若第一层比较在固定描述符下失败，先查候选、概率和采样。若固定描述符通过，而完整入口失败，优先查上游几何、标签或描述符的变化。这样每个基准回答一个清楚的问题。
+After expression matched with fixed descriptors, testing expanded to the author's entry point including geometry and MENDER. A failure with fixed descriptors directs debugging to the donors, probabilities, and sampling. A failure confined to the full entry point directs it upstream to geometry, labeling, or descriptors.
 
-### 5. 在全量任务上换执行结构
+### 5. Change the execution structure for a full reconstruction
 
-回看，单层提速以后，目标转为在给定资源下持续完成多层。沿依赖图观察，表达需要当前层的 XY，可在后续层的几何计算期间运行。因此选“层”作为传递和持久化边界，选“相邻切片对”作为领取任务的边界。若一层同时依赖其他生成层的结果，这种重叠就不能直接使用。
+After reducing per-layer time, the production objective was to generate many layers within the available resources. Expression synthesis needs the XY coordinates of its own layer, so it can overlap geometry work for a later layer. The design uses layers for handoff and persistence and adjacent measured slice pairs for queue assignment. This overlap depends on the absence of cross-layer dependencies in the generation path.
 
-- **GPU 几何 → CPU 表达。** 沿作者目标和迭代计算 XY，层就绪后交给 CPU 处理标签、MENDER 和表达。CPU 可写出前一层时 GPU 仍在求下一层。逐层提交和恢复，使一次失败只需重做未完成层。
-- **按相邻实测深度排队。** 143 个相邻深度对经共享队列分发。稳定任务 ID 和按层种子避免调度顺序改变抽样。队列保留领取、限流与重试记录。
-- **逐层落盘。** 保存几何和稀疏表达，释放描述符、内存缓冲及设备缓存。三层流式试验核对了稀疏表达数据及索引、XY、标签和基因轴，确认首层表达写出早于下一层几何完成。560 µm 层 CPU RSS 从释放前 916.75 MiB 到释放后 769.55 MiB，GPU 该层峰值 330.92 MiB、结束已分配 16.25 MiB。这些是单次运行内的内存观测。
+- **GPU geometry and CPU expression.** Compute XY with the original objective and iteration count. Send each layer to the CPU for labeling, MENDER, and expression synthesis. While the CPU writes one layer, the GPU can compute the next. Persisting and resuming per layer limits rework to unfinished layers.
+- **Queue adjacent measured depths.** Dispatch 143 adjacent depth pairs through a shared queue. Stable task IDs and per-layer seeds keep scheduling order from changing sampling. Preserve claim, throttling, and retry records.
+- **Write and release per layer.** Save geometry and sparse expression and release descriptors, host buffers, and device caches. A three-layer trial checked sparse expression data and indices, XY, labels, and the gene axis. The first layer's expression was written before geometry for the next layer finished. For the 560 µm layer, CPU RSS dropped from 916.75 to 769.55 MiB after release. GPU allocation peaked at 330.92 MiB and ended at 16.25 MiB. These are within-run memory observations.
 
-### 6. 追到 Fig. 3 实际采用的版本
+### 6. Identify the implementation used for Fig. 3
 
-全量 ABCA-1 使用上述手工实现，产物有 22,574,061 个点和 1,133 个深度，其中 144 个实测深度、989 个生成深度。Fig. 3 的三个五切片窗口沿用作者表达合成，并将 MENDER worker 从 200 调为 4。全量生产实现逐层运行 MENDER，后续的合批实验收录在 Agent 库。全量工作量和调度能力有产物收据，速度比较采用上表各自的配对范围。这里逐一检查论文产物从哪个入口生成，防止把小窗的 worker 配额调整、全量的工程实现和后续合批实验当作一次叠加加速。
+The full ABCA-1 reconstruction used the manual implementation above. It produced 22,574,061 points across 1,133 depths, with 144 measured depths and 989 generated depths. The three five-slice Fig. 3 windows use the original expression implementation with MENDER workers reduced from 200 to 4. The full production implementation calls MENDER per layer. The later batching experiments are in the Agent library. The production records establish scale and execution behavior, and the timing claims apply to the paired scopes in the table.
 
-**可迁移经验。** 从最终被消费的结果反推必要计算，用稀有类型一类的边界样本查语义。局部实验保留中间量以定位错误。扩大到真实入口时复验阶段交接、落盘、内存和恢复行为。[六步现场 Demo](https://ljzylinpr.github.io/Bio-Opt/)
+**Transferable lesson.** Trace from downstream consumers to the values they require. Use edge cases such as rare types to test semantics. Keep small intermediate outputs to localize differences, then verify handoff, writing, memory, and recovery through the real entry point. [Six-step interactive walkthrough](https://ljzylinpr.github.io/Bio-Opt/spatialz-story.html)

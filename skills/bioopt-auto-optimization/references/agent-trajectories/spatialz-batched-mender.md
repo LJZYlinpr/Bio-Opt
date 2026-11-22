@@ -1,32 +1,34 @@
-# SpatialZ · 从拆分缓存到批量 MENDER
+# SpatialZ from split caching to batched MENDER
 
-## 基线与观察
+## Baseline and observations
 
-在手工版候选余弦和 C++ 采样的基础上，针对作者 MERFISH 插值。以 V100 上三个单层生成的阶段计时定位剩余热点。采样约 0.24–0.29 秒，几何约 11.35–12.95 秒，MENDER 约 20.17–27.02 秒，占 60%–67%。对 MENDER worker 32→64 的试验未给出稳定收益，其中第三例反而从 30.48 秒升至 32.58 秒。下一步查初始化和跨层重复。选择先碰 MENDER 有两个依据：采样优化后阶段占比已变，继续缩短亚秒级步骤对总用时影响有限；更多 worker 即使不改输出，也未给稳定收益。此时有两个竞争解释：时间大头在重复算参考描述符，或在每次构建模型的准备工作。它们会给出不同的优化方向。
+The starting point used the manual candidate-only cosine scores and compiled C++ sampling. Profiling three single-layer generations from the MERFISH tutorial on a V100 gave about 0.24–0.29 seconds for sampling, 11.35–12.95 seconds for geometry, and 20.17–27.02 seconds for MENDER. MENDER accounted for 60%–67% of the measured time. Increasing MENDER workers from 32 to 64 gave no consistent improvement. The third case slowed from 30.48 to 32.58 seconds.
 
-## 用两组最小实验区分原因
+The profile made further sampling work a lower priority. The team considered two explanations for MENDER's cost. It might be repeatedly computing reference descriptors, or repeatedly preparing the model. The explanations called for different changes.
 
-先问能不能拆。比较每层联合算出的描述符与参考、查询分别计算的描述符，只有逐位相符才允许缓存候选进入计时。再问拆了是否省时间：三层原版三次初始化，拆分版一次参考加三次查询，共四次。若重复参考计算主导，拆开后应节省；若准备成本大，拆开就可能更慢。实测输出一样而耗时增加，让搜索从“缓存描述符”转到“少初始化”。该对照没有独立测量每次初始化用时，因此将它视为对准备成本解释的支持，单模型合批再提供进一步证据。
+## Experiments that distinguish the explanations
 
-合批时仍有风险：一起运行可能改变描述符或行对应。比较同一切片对的三个目标，再换另一切片对复测；两组同时通过，才合入完整生成。
+The first test checked whether reference and query descriptors could be computed separately while matching the joint calculation bit for bit. The timing test then compared three original model initializations with four in the split design, one for the shared reference and one for each query. If reference computation dominated, splitting should save time. If preparation was substantial, the additional initialization could make it slower. The outputs matched and runtime increased. That redirected work from caching to reducing initializations. The test supports a preparation-cost explanation without directly measuring initialization time in isolation.
 
-| 尝试 | 最小对照 | 结果与取舍 |
+Batching can change descriptors or row correspondence. The team checked three target layers for one reference slice pair and repeated the check for a second pair before integrating the change into full generation.
+
+| Candidate | Smallest comparison | Outcome |
 |---|---|---|
-| 拆开参考和查询的描述符 | 先单独检验额外切片有无改变描述符，再比较三层总耗时。 | 描述符及三层输出一致，但 46.595→61.096 秒。多一次模型初始化吃掉节省，弃用。 |
-| 合并为一个模型调用 | 将 A、B 两张参考和三个目标放入一次 MENDER，仍按层采样。 | 第一切片对 48.495→18.956 秒，第二对 53.440→20.395 秒。三层 XY、标签与表达均逐位一致。 |
-| 缩减或复用几何随机投影 | 静态检查 1,000 次迭代内的随机生成器调用。 | 各次计算推进同一个生成器。直接复用投影或减迭代会改变几何任务，未纳入等价候选。 |
+| Separate reference and query descriptors | Check whether separating the slices changes descriptors, then time three layers. | Descriptors and three-layer outputs matched. Runtime increased from 46.595 to 61.096 seconds. The split design was rejected. |
+| Group layers into one MENDER call | Run reference slices A and B and three target layers in one MENDER model. Sample expression per layer. | Two slice pairs took 48.495 to 18.956 seconds and 53.440 to 20.395 seconds. XY, labels, and expression matched bit for bit for all three layers in each test. |
+| Reduce or reuse random projections in geometry | Inspect the generator calls in the 1,000-iteration loop. | Each calculation advances the same generator. Projection reuse or fewer iterations would change the generation task. |
 
-## 被拒绝的全流程对照
+## Rejected 12-layer comparison
 
-早期十二层实验把新的批量路径与旧保存基线比较，得到表面 4.54×。坐标与类型一致，但每层约 44–48 万个表达值不同，验收失败。随后在同进程、同 GPU 上比较新鲜原版、旧原版和批量实现。新旧原版本身也有表达差异，说明旧产物不适合作逐位对照。检查发现原版表达采样依赖未固定的 NumPy 全局状态。原实验保留为失败记录。这里需要区分几种解释：几何产生了不同输入、合批改变了描述符，或原版本来就消耗未固定的随机流。XY/类型一致先缩小排查范围。新鲜原版与旧原版也不同，排除了用旧快照单独归罪合批的逻辑；它还不能证明候选正确。必须用固定每层的 NumPy 状态重新比较双方，才能裁定该随机合同下是否等价。
+An early comparison of the batch implementation against saved baseline outputs appeared to show a 4.54× gain. XY and types matched, but roughly 440,000–480,000 expression entries differed per layer. It failed verification. To check whether the differences came from geometry, descriptors, or randomness, the team compared a fresh original run, the saved original outputs, and the batch implementation in the same process and on the same GPU. The two original outputs also differed. The original expression sampler used an uncontrolled global NumPy state, so the old outputs could not serve as an exact comparison. A fresh paired run under the same random-state rule was necessary to judge the candidate.
 
-## 重新建立合同并复测
+## Corrected comparison and repetition
 
-原版每次调用前重置 NumPy seed 42，候选每层用同一 seed。先复测同一对参考片的三个目标，436.059→52.223 秒，逐层等价通过。再扩大到四对共十二层。
+Reset NumPy seed 42 before every original call and use the same seed per target layer in the candidate. A retest with three targets from one reference pair passed layer-by-layer verification and took 436.059 to 52.223 seconds. The comparison then expanded to four reference pairs and 12 targets.
 
-| 完整生成配对 | 原版 | 优化 | 等价性 |
+| Generation pair | Original | Optimized | Verification |
 |---|---:|---:|---|
-| 第一轮 | 1804.282 秒 | 214.889 秒 | 12 层表达、XY、类型一致，8.40× |
-| 第二轮 | 1742.078 秒 | 200.323 秒 | 12 层同样通过，8.70× |
+| Round 1 | 1804.282 s | 214.889 s | Expression, XY, and types matched across 12 layers. 8.40×. |
+| Round 2 | 1742.078 s | 200.323 s | All 12 layers passed the same checks. 8.70×. |
 
-两轮的计时覆盖生成计算。最终合并写出与绘图单列。结论绑定每层重置的随机合同，不能用于替代作者连续随机流的验证。为什么还做第二轮完整配对：三层能验证调用边界，无法覆盖四个参考间隔，以及长运行中的波动。两轮同口径都通过才报告已测范围。进一步评估 MENDER 批量规模时，需同时记录候选内存和每个目标的输出。[配对代码和原始收据](https://github.com/LJZYlinpr/Bio-Opt/tree/main/algorithms/SpatialZ)
+These timings cover generation. Final merge, writing, and plotting are outside the comparison. The result applies to runs that reset the seed for each layer. The continuous random stream used by the original workflow remains a separate validation setting. The three-target pilot checked the call boundary. The two full runs also covered four reference intervals and variability over longer runs. Further tests of batch size should record peak memory and verify the outputs of each target. [Benchmark code and evidence](https://github.com/LJZYlinpr/Bio-Opt/tree/main/algorithms/SpatialZ)

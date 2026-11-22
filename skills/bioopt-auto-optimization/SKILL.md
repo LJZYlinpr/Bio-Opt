@@ -3,59 +3,59 @@ name: bioopt-auto-optimization
 description: Optimize bioinformatics software with a verified baseline, frozen scientific acceptance criteria, ranked performance candidates, and reproducible measurements. Use to investigate bottlenecks, design or execute optimization experiments, compare resources, or transfer a validated optimization.
 ---
 
-# BioOpt 科学计算优化
+# BioOpt scientific computing optimization
 
-给定一个算法和可用预算，以可复查的实验找到保留科学任务的已测最优实现。以 [Codex 工作流底座](references/workflow-base.md) 的 Scout、Baseline、Optimize、Experiment 作为执行规则。下面六步依次产生任务卡、基线收据、验收合同、候选表、评估排序和实测结果。不确定的字段写明证据缺口。
+Given an algorithm and a resource budget, use reproducible experiments to find the best measured implementation that preserves the scientific task. This skill follows the Scout, Baseline, Optimize, and Experiment rules in the [Codex workflow foundations](references/workflow-base.md). The six steps produce a task brief, a baseline record, acceptance criteria, a candidate table, an independent ranking, and experimental results. Flag any evidence gaps.
 
-## 1. 查清正在处理的任务（Scout）
+## 1. Identify the actual task (Scout)
 
-- 先从用户要求和本地配置、运行命令、日志、已有产物恢复实际任务。记录要优化的入口、代码版本、输入、工作量、目标输出及资源限制。
-- 查 GitHub 正式仓库的版本、示例、issue 和相关讨论。读论文与补充材料、作者教程和社区复现经验。用社区经验定位疑点，再回到对应版本的调用路径和实际记录核实。
-- 追踪公开入口到最终产物的调用链。区分作者默认行为、本地适配和曾经试过的替代路径。对会改变选题或基线的说法找反证，例如同名入口是否跑了另一套数据或任务。
-- **交付任务卡**：科学问题、实际入口、相关来源、现有基线和还缺什么。证据足以判断基线路线时结束调研。
+- Reconstruct the task from the request, local configuration, commands, logs, and existing outputs. Record the execution entry point, code revision, inputs, workload, target outputs, and resource limits.
+- Check the upstream GitHub repository, including versions, examples, issues, and discussions. Read the paper and supplements, the authors' tutorials, and community reproduction reports. Use community reports to identify questions, then verify them against the relevant code and run records.
+- Trace the public entry point to the final outputs. Distinguish upstream defaults, local adaptations, and previously tested alternatives. Look for evidence that could overturn decisions about the task or baseline, such as an identically named command that ran on different data or solved a different task.
+- **Deliver the task brief** with the scientific question, actual entry point, sources, available baseline, and missing evidence. End scouting once the evidence is sufficient to choose a baseline path.
 
-## 2. 获得可信的原版对照（Baseline）
+## 2. Establish a credible baseline (Baseline)
 
-- 核查作者有没有可执行示例、教程、参考输出或已测基线，以及代码、数据、模型和依赖能否取得。
-- 有作者基线时，优先查本地是否已有同任务、同输入、同版本的成功记录。核对运行命令、真实输出和官方要点。仅有截图、日志末尾或退出码时，补读输出或重跑必要环节。已有可信记录时直接复用。
-- 作者基线缺失或无法运行时，说明缺的是入口、依赖、数据还是参考结果。可以单列能核实的替代对照及它支持的主张。可执行冒烟、可公平比较和忠实复现作者结果分别验收。
-- **交付基线收据**：状态、版本、输入来源、命令、环境、实际输出及已知偏离。对照可比较后才开始正式性能配对。
+- Check for an executable author example, tutorial, reference output, or measured baseline. Verify that its code, data, model files, and dependencies are available.
+- If an author baseline exists, first look for successful local records using the same task, inputs, and revision. Check the actual command, output, and protocol. If only screenshots, exit codes, or the tail of a log are available, inspect the artifacts or rerun the necessary steps. Reuse sufficiently verified records.
+- If the author baseline is absent or unusable, report which entry point, dependency, data, or output is missing. Record any verified substitute and the claims it can support. Verify basic execution, fair comparability, and faithful reproduction of upstream results as separate milestones.
+- **Deliver the baseline record** with status, revision, input provenance, command, environment, actual outputs, and known deviations. Start formal paired measurements once the baseline is comparable.
 
-## 3. 定义科学任务、稳定性和性能指标（Baseline → Experiment）
+## 3. Define scientific, stability, and performance criteria (Baseline → Experiment)
 
-- 说明算法解决的生物学问题、必须保留的输出和下游判定。先从论文与基线提取必测指标，再根据用户目标决定采用精确一致、预定数值容差或下游指标等价。
-- 在看候选结果前冻结比较输入、评估入口、指标方向、通过阈值和分析单位。根据历史复现波动、随机性和后端差异决定是否测原版重复性。记录必要字段及发生差异时如何定位。候选的输出标准始终沿用该合同。
-- 选一个主要性能指标，写清要降低的是墙钟时间、峰值资源、单位任务成本，还是提高吞吐量。记录必要的次指标和硬约束。声明计时是否包含初始化、加载、搬运、排队和写出。
-- **交付验收合同**：每个指标的依据、评估方法和放行条件。正确性先放行，性能负责排序。
+- State the biological question and the outputs and downstream decisions that must be preserved. Derive essential metrics from the paper and baseline. Choose exact agreement, predefined numerical tolerances, or downstream equivalence according to the task.
+- Before inspecting candidate results, fix the comparison inputs, evaluation entry point, metric directions, acceptance thresholds, and units of analysis. Use evidence about variation, randomness, and backend differences to decide whether to measure baseline repeatability. Identify the required output fields and how to locate disagreements. Apply the same criteria to every candidate.
+- Choose a primary performance metric such as elapsed time, peak resource use, cost per task, or throughput. Record supporting metrics and hard constraints. Specify whether the interval includes setup, input loading, data transfer, queueing, and writing.
+- **Deliver the acceptance criteria** with the rationale, measurement method, and threshold for each metric. Require correctness before ranking by performance.
 
-## 4. 从复现轨迹提出候选（Optimize）
+## 4. Generate candidates from the baseline profile (Optimize)
 
-- 先查已有尝试，再按正常入口剖析运行。看阶段耗时、峰值、设备占用、重复计算、数据移动和等待。将观察绑定到函数、日志或 profiler，并标记实测、推断和待核实。
-- 沿下表四条路线，各写至少 **3 个机制不同**的候选。对证据显示不适用的方案标明原因或可行前提，保留它在候选表里供评估。必要时加其他有证据的路线。
-- 每张候选卡包含：**编号与路线 / 瓶颈证据 / 机制假设 / 最小改动 / 保持的语义 / 风险与资源 / 最小反例 / 放行标准**。候选包含性能估计时，说明估计的依据和计时范围。
+- Review existing attempts and profile the normal execution path. Measure stage time, peak resource use, device utilization, repeated computation, data movement, and waiting. Tie observations to functions, logs, or the profiler. Label measurements, inferences, and open questions.
+- Propose at least **three candidates with distinct mechanisms per route**. Record why a candidate is inapplicable or what would make it feasible. Keep it in the table for evaluation. Add other evidence-backed routes when appropriate.
+- For each candidate, record its ID and route, bottleneck evidence, mechanism, smallest useful change, required invariants, risks and resources, smallest counterexample, and criteria for proceeding. Explain the evidence and timing boundary for any performance forecast.
 
-| 路线 | 起始候选及检查点 |
+| Route | Candidate mechanisms and checks |
 |---|---|
-| CPU 多进程 | 独立单元分片、合并小任务减少调度、worker 复用只读数据。检查序列化、负载均衡、进程与库线程相乘的开销。 |
-| CPU 迁移到 GPU | 迁移主热点算子、批量或融合小算子、设备驻留以消除往返。先标出真实的 CPU/GPU/I/O 边界，计入初始化、传输和同步，单独核对数值和语义。 |
-| 大内存计算与合并 | 合并共享上下文的重复初始化、分块或流式推进、复用中间缓冲或消除重复副本。检查跨块依赖和合并顺序，同时测工作流耗时和峰值。 |
-| 单卡优先与多卡扩展 | 在单卡降低峰值、合并独立工作、调优设备和 CPU 交接。单卡无法满足目标工作量与资源约束时，记录依据，再评估多卡分片、通信和合并。 |
+| CPU multiprocessing | Partition independent work, group fine-grained tasks to reduce dispatch overhead, and share read-only data across tasks in each worker. Check serialization, load balance, and oversubscription from worker counts multiplied by library threads. |
+| CPU to GPU | Migrate the dominant operation, batch or fuse small operations, and keep data on-device to avoid transfers. Map the actual CPU, GPU, and I/O boundaries. Include initialization, transfer, and synchronization in performance measurements and check numerical and scientific equivalence separately. |
+| Memory use and batching | Share initialization across related workloads, split or stream work, and reuse intermediate buffers or remove duplicate copies. Check dependencies across chunks and merge order. Measure workflow time and peak resource use. |
+| Single GPU and multi-GPU scaling | Reduce peak memory on one GPU, batch independent work, and improve device utilization and the CPU handoff. If one GPU cannot meet the workload and resource targets, record the evidence and evaluate sharding, communication, and merging across GPUs. |
 
-## 5. 由独立评估 Agent 排序（Optimize）
+## 5. Rank candidates independently (Optimize)
 
-- 给评估者同一份任务卡、基线、科学合同、剖析记录、预算和全量候选表。让它独立核查工作是否真正可省、改动能否保持语义、测试是否足以推翻方案。
-- 先排除无法满足科学合同或硬资源约束的实现，再按瓶颈证据、有效收益、风险以及实现与验证成本排序。每个方向都留下取舍依据。可疑的大收益先安排一个区分原因的低成本实验。
-- **交付排序表**：候选编号、排名、依据、资源上限、最小小试和晋级条件。主执行者据此取一小批实施。当前环境无法委派时，先完成独立的书面评估，再开始修改。
+- Give an independent evaluator the task brief, baseline, scientific acceptance criteria, profiles, budget, and complete candidate table. Have it check whether the work is avoidable, whether the change preserves semantics, and whether the proposed test can falsify the hypothesis.
+- Exclude candidates that violate scientific or hard resource constraints. Rank the rest by bottleneck evidence, expected benefit, risk, implementation effort, and verification cost. Record the reasoning for each direction. Use a low-cost experiment to distinguish explanations for implausibly large gains.
+- **Deliver the ranking** with IDs, ranks, rationale, resource limits, smallest trials, and criteria for larger experiments. Start implementation with a small set. If delegation is unavailable, write a separate assessment before modifying code.
 
-## 6. 并行小试、交叉复测并选最优（Experiment → Optimize）
+## 6. Run small trials, compare candidates, and select the best measured result (Experiment → Optimize)
 
-1. **冻结运行计划。** 每个候选用隔离的代码改动与输出目录。资源和工具允许时分配独立子代理或多进程。每个执行者有唯一候选编号、修改边界、原版命令、验收合同、资源和试验预算。正式计时避免跨候选争用，或记录并验证资源隔离。
-2. **先验正确性。** 从能暴露差异的小样本开始，比较关键阶段和最终产物。逐步定位首个差异。修改或重试要有新的证据、配置修正或可检验假设。未通过的方案保留记录并退出性能决选。
-3. **同条件配对。** 比较原版与候选，控制冷热状态并交错顺序。记录每次时间、离散程度和峰值资源。资源数或设备有变化时，记录配额与端到端、单位资源两个口径。[运行清单与脚本](references/benchmark.md)
-4. **交叉比较。** 在共有代表输入重测领先方向，另用与开发样例独立的规模或边界场景检查结论。组合互补改动时比较原版、各单项和组合，核实增益、相互干扰和等价性。根据证据记录继续探索、集中验证、融合、修复或停止。
-5. **交付结论。** 用同一冻结合同选出已测方案中满足正确性和资源条件的最优项。附基线、补丁、命令、原始用时、验证结果、拒绝原因及适用范围。优化轨迹应说明每次决策前的观察、竞争解释、选择这项试验的理由、结果排除了什么，以及它怎样改变下一步。将现场记录与事后推断注明出处。若没有稳定收益，保留可信基线和实验结论。跨算法迁移要在另一实现上独立复验。
+1. **Fix the run plan.** Isolate code changes and output directories by candidate. Use separate agents or worker processes when tools and resources permit. Give each worker a candidate ID, change boundary, reference command, acceptance criteria, resources, and trial budget. Keep formal timings free of competing candidate workloads or verify and document resource isolation.
+2. **Check correctness first.** Start with a small case capable of exposing differences. Compare key intermediate results and final outputs, and locate the first divergence. Update or retry only when there is new evidence, a corrected configuration, or a testable hypothesis. Preserve rejected results and remove failed candidates from the final performance comparison.
+3. **Pair under matched conditions.** Control warm and cold states and interleave run order. Save individual times, variability, and peak resource use. When device or resource counts change, report allocations, end-to-end results, and resource-normalized results. [Benchmark template and scripts](references/benchmark.md)
+4. **Compare across conditions.** Retest leading candidates on common representative inputs and on a size or boundary case independent of the development case. For combinations, compare the reference, standalone changes, and combined implementation. Check incremental gains, interference, and equivalence. Use the evidence to continue exploration, focus verification, combine changes, fix a problem, or stop.
+5. **Report the result.** Select the strongest measured candidate that satisfies the frozen scientific and resource criteria. Attach the baseline, patch, commands, raw measurements, verification, rejection reasons, and scope. For each decision, record the preceding observation, competing explanations, why the test was chosen, what it ruled out, and how it changed the next step. Identify historical evidence and retrospective reasoning. If gains are unstable, retain the credible baseline and experiment results. Validate transfer independently on another implementation.
 
-## 查阅优化轨迹库
+## Case libraries
 
-- [专家优化轨迹库](references/expert-trajectories/README.md)用于看人工如何定位热点、避免改变任务语义并扩大工作量。
-- [Agent 优化轨迹库](references/agent-trajectories/README.md)用于看多个候选如何试错、修正对照和检查迁移范围。
+- The [expert trajectory library](references/expert-trajectories/README.md) shows how an expert located bottlenecks, preserved scientific semantics, and scaled the workload.
+- The [Agent trajectory library](references/agent-trajectories/README.md) shows how candidate trials, failed baselines, and transfer checks changed optimization decisions.

@@ -1,15 +1,13 @@
-# UniST · 在线程配置中识别伪收益
+# UniST verifying a thread configuration gain
 
-**任务与入口。** 复现官方插值教程。由第 1、5 张真实片生成第 2–4 张，流程包括图像转换、插值与合并体积。CPU 路径评估线程配置，不改变插值模型或参数。
+The experiment reproduced the official interpolation tutorial. It used measured slices 1 and 5 to generate slices 2–4 and included image conversion, interpolation, and volume merging. The CPU comparison kept the interpolation model, inputs, and parameters fixed.
 
-## 为什么选择调线程
+## Why start with thread count?
 
-这是可回退且修改范围小的候选。线程数有可能让现有 CPU 算子并行，而原模型、输入和插值参数能保持固定。刚看到巨大时间差时存在两个解释：真正的线程收益，或顺序、冷启动、节点负载改变了较慢的一侧。最终文件哈希相同只验证了正确性，不能区分这两种性能解释。
+Thread configuration is reversible and can expose parallelism in existing CPU operations. An initial large difference could have come from genuine thread scaling, execution order, cold startup, or host load. Matching TIFF hashes checked correctness but could not distinguish these explanations for the timing difference.
 
-1. **第一次试验。** 同节点顺序运行 1 与 4 线程，耗时 78.489 和 5.762 秒，最终 TIFF 哈希相同。单次对照没有区分启动、节点负载与线程效应，13.62× 暂不采用。
-2. **修正设计。** 统一输入与三个阶段命令，在相同 CPU 作业中按 2、4、8、2、4、8 线程交错运行，保留每一轮和输出签名。交错重复避免同一配置总排在最先或最后。若差距来自线程数，应在多轮中重复出现；若单次测量混入启动和负载，其巨大比值就不应延用。本轮未重新建立 1 线程对照，所以有效比值明确写为 2→8 线程。
-3. **验收。** 2、4、8 线程均值分别为 6.287、5.638、5.296 秒，六份最终 TIFF 的 SHA-256 相同。2→8 获得约 1.19× 的线程配置收益，4→8 的边际收益变小。
+1. **Initial run.** Sequential runs with 1 and 4 threads on the same node took 78.489 and 5.762 seconds, with matching final TIFF hashes. The single comparison could not isolate startup, load, and thread effects. The 13.62× estimate was rejected.
+2. **Revised design.** Use the same inputs and three commands and run 2, 4, 8, 2, 4, and 8 threads in one CPU allocation. Save all times and output hashes. Interleaving avoids always assigning the same configuration to the first or last run. A thread effect should recur across repetitions. The revised design does not reestablish the single-thread reference, so the supported comparison starts with two threads.
+3. **Verification.** The 2-, 4-, and 8-thread means were 6.287, 5.638, and 5.296 seconds. All six final TIFF files had the same SHA-256. Raising the setting from 2 to 8 threads gave about 1.19×, with a smaller incremental benefit from 4 to 8.
 
-**为什么止步。** 继续加线程的价值要由边际收益和共享资源成本决定。测到 4→8 的收益变小之后，已有证据足以说明这条路线的收益有限。回看若考虑部署，4 与 8 线程之间应按完成时限、吞吐或核时的实际目标选择。
-
-**结论范围。** 这是给定 CPU 环境的资源配置比较，验收对象为最终体积文件。若继续比较更大数据，需要测吞吐、线程预算、峰值内存，以及重复运行的方差。[配置对照脚本与每轮结果](https://github.com/LJZYlinpr/Bio-Opt/tree/main/algorithms/UniST)
+The declining marginal gain warranted stopping this trial. A deployment decision between four and eight threads would depend on the target latency, throughput, or core-hours. The result applies to the tested CPU environment and final volume. Tests at larger workloads should measure throughput, thread allocation, peak memory, and repeat-run variation. [Benchmark script and measurements](https://github.com/LJZYlinpr/Bio-Opt/tree/main/algorithms/UniST)

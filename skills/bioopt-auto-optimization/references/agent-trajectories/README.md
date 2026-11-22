@@ -1,10 +1,10 @@
-# Agent 优化轨迹库
+# Agent optimization trajectories
 
-| 轨迹 | 读它可以解决什么问题 | 证据性质 |
+| Case | What it shows | Evidence |
 |---|---|---|
-| [SpatialZ · 批量 MENDER](spatialz-batched-mender.md) | 暂存更慢时如何重新定位瓶颈，如何排查失效的随机基线 | 阶段剖析、负结果、单对与完整十二层的配对 |
-| [SpaGRN · 数据搬运](spagrn-transport.md) | 如何证明并行瓶颈来自传输，并只改任务载荷 | 小样本等价、优化版全量实测、旧版全量外推 |
-| [UniST · 线程配置](unist-threads.md) | 如何识别冷启动或节点负载造成的虚高比值 | 上游教程与交错复测 |
-| [CPU/GPU 等价性审查](cpu-gpu-equivalence-audit/README.md) | 如何在没有运行证据时划分候选，以及怎样设计逐级验证 | 团队成员提供的审查方法、静态案例和评测用例 |
+| [SpatialZ batched MENDER](spatialz-batched-mender.md) | How a slower caching attempt redirected profiling and how a randomized baseline was repaired. | Stage profiles, rejected candidates, and paired trials on individual slice pairs and 12 target layers. |
+| [SpaGRN data transfer](spagrn-transport.md) | How task payloads exposed a multiprocessing bottleneck and how the transfer change was tested in isolation. | Exact agreement on small cases, an optimized full tutorial run, and an extrapolated original full-run time. |
+| [UniST thread settings](unist-threads.md) | How interleaving and repeating runs resolved an inflated single-run speedup. | Upstream tutorial and repeated thread comparisons. |
+| [CPU/GPU equivalence audit](cpu-gpu-equivalence-audit/README.md) | How to partition a workflow and design verification before measured results are available. | Team-contributed audit workflow, static case study, and evaluation prompts. |
 
-前三条来自 KiloCode 的实际探索。阅读时先找触发判断的观察，再看能区分不同解释的最小实验。每条都保留被否决的思路、否决依据和下一步。标为“回看”的内容用于解释现有证据，未被执行的备选不会写成已验证结果。
+The first three cases come from KiloCode experiments. Each entry records what triggered the decision, which explanations competed, and what the smallest discriminating trial showed. Retrospective analysis is identified as such, and unexecuted alternatives are presented as proposals.

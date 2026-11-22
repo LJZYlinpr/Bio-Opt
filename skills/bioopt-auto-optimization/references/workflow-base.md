@@ -1,31 +1,31 @@
-# Codex 工作流底座
+# Codex workflow foundations
 
-本文件固化本地 Codex Skill 的通用执行规则，供主 Skill 在每次任务中使用。主要来源是 `deepscientist-scout`、`deepscientist-baseline`、`deepscientist-optimize` 和 `deepscientist-experiment`。BioOpt 内置了阶段交接和验收规则，可用普通文件、日志和命令落实。
+This reference adapts reusable rules from the local Codex skills `deepscientist-scout`, `deepscientist-baseline`, `deepscientist-optimize`, and `deepscientist-experiment`. BioOpt implements their handoffs and acceptance checks using files, logs, and commands.
 
-## Scout · 交付任务定义
+## Scout
 
-记录用户目标和边界、已确认的实际实现、输入与预期输出、候选基线、仍需核实的问题。遇到来源不一致时，确认对应版本与实际调用路径。优先核验会改变下一步的事实，证据足够确定任务和基线路线后结束调研。
+Record the user's goal and constraints, the actual implementation, inputs, expected outputs, possible baselines, and open questions. When sources disagree, check the relevant revision and execution path. Prioritize facts that would change the next decision. End scouting when there is enough evidence to define the task and choose a baseline.
 
-## Baseline · 建立一个可信对照
+## Baseline
 
-| 验收级别 | 放行证据 |
+| Acceptance level | Required evidence |
 |---|---|
-| 可比较 | 对照有稳定身份，版本、数据与适用的数据划分、评估入口、指标和环境可追溯，输出或指标能从持久产物核查。 |
-| 忠实复现 | 在可比较要求上核对作者指定入口和协议、参考产物或指标，列明与作者流程的差异和影响。缺少对应证据时暂停该项复现主张。 |
+| Comparable | The reference has a stable identity. Its version, data and splits where applicable, evaluation entry point, metrics, and environment are traceable. Outputs or metrics can be checked against saved artifacts. |
+| Faithful reproduction | Verify the authors' entry point and protocol and check the reference artifacts or metrics. Record any deviations and their implications. Defer this claim when the corresponding evidence is missing. |
 
-复用、导入和重新运行是获得对照的不同路径。优先选择能达到当前验收级别的最小工作。通过后保留一份比较合同，写明任务、版本、数据、评估入口、必需指标及方向、等价界限、证据位置与已知偏离。阻塞时记录当前缺项、验证过的事实和下一条可行路径。
+Reusing, importing, and rerunning an existing baseline are all valid paths. Choose the least work that meets the required acceptance level. Once verified, record the task, version, data, evaluation entry point, required metrics and their directions, equivalence bounds, evidence locations, and known deviations. If blocked, record the missing item, verified facts, and next viable path.
 
-## Optimize · 排序、晋级与选择下一轮
+## Optimize
 
-- **候选提案**记录假设、代码路径、证据、收益预估、资源风险和证伪条件。将提案放在同一候选表上独立排序。
-- **实施方向**只从有意义的高优先级提案中选出。有清楚的正确性门槛、预算和停止条件后，分配隔离的实施任务。
-- **实现尝试**属于某个实施方向。保存补丁、实验状态、日志、失败证据和下一动作，便于回退并避免重复尝试。
-- 每批实验后先对照当前最佳已验证方案。证据不足且仍有高价值方向时继续探索，领先明确时集中验证，有互补证据时组合，具体故障可修时修复，收益不足或预算到达时记录停止理由。每批记录一个主动作。
+- **Propose candidates.** Record each hypothesis, code path, evidence, estimated gain, resource risk, and falsification condition. Rank proposals independently in a common table.
+- **Select directions.** Choose promising, high-priority candidates. Establish correctness requirements, budget, and stopping criteria before handing off an isolated implementation.
+- **Track attempts.** Tie each attempt to a direction and save the patch, status, logs, failure evidence, and next action. This supports rollback and avoids repeating the same attempt.
+- **Decide after each batch.** Compare against the strongest verified option. Explore if evidence is incomplete and promising directions remain. Focus verification if one stands out, combine complementary changes, or repair a specific failure. Stop when evidence does not support further gains or the budget is exhausted. Record one primary action and the reason.
 
-## Experiment · 从小试晋级到可采信结论
+## Experiment
 
-运行前记录假设、最小有效对照、输入、实现版本、环境、命令与预期证据。在隔离资源下先做小试，核对科学指标和关键假设。晋级后用同一冻结合同配对，复测能改变结论的条件。某次失败只有在代码、命令、环境或假设有可解释的改变时才重试。
+Before running, record the hypothesis, smallest meaningful control, inputs, revisions, environment, commands, and expected evidence. Pilot under isolated resources and check scientific metrics and critical assumptions. If the pilot advances, reuse the frozen acceptance criteria for paired runs and retest conditions that could change the result. Retry failures only when an identifiable change to the code, command, environment, or hypothesis justifies it.
 
-正式验收检查必需指标齐全、数值按合同有效、原始结果可追溯、测量资源可比较，并区分小试、正式配对、资源扩展与估算。受并行抢占、冷热状态或其他混杂影响的结果注明限制。组合候选与原版和单项均对照。汇总时每项结论都链接到可复核的收据并写出通过、淘汰或暂缓的依据。
+Verify that required metrics are present, values meet the acceptance criteria, raw outputs are traceable, and resources are comparable. Identify pilot results, formal pairs, resource scaling tests, and estimates. Disclose contention, warm-up effects, and other confounders. Compare combined candidates with the reference and standalone changes. Link conclusions to verifiable records and explain why each candidate was accepted, rejected, or deferred.
 
-BioOpt 的增量包括以生物学任务冻结指标、按四类资源路线生成候选、独立评估、多执行单元并行小试和专家/Agent 两个轨迹库。分工和案例选择由主 Skill 规定。
+BioOpt adds biological acceptance criteria, four resource routes for candidate generation, independent evaluation, parallel pilots, and expert and Agent case libraries. The main Skill defines how to assign work and select cases.
