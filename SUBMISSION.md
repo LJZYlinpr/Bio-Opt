@@ -31,5 +31,5 @@ BioOpt｜保持科学结果的算法性能优化 Skill
 ## 第三方资源
 
 - [SpatialZ 作者代码与 MERFISH 教程](https://github.com/senlin-lin/SpatialZ/tree/e1b5ed01e933729149e08399febca08db16ced14)
-- [MENDER](https://github.com/FeiyangMa6/MENDER) · [POT](https://pythonot.github.io/) · [PyTorch](https://pytorch.org/) · [NumPy](https://numpy.org/) · [SciPy](https://scipy.org/) · [AnnData](https://anndata.readthedocs.io/)
+- [MENDER](https://www.nature.com/articles/s41467-023-44367-9) · [POT](https://pythonot.github.io/) · [PyTorch](https://pytorch.org/) · [NumPy](https://numpy.org/) · [SciPy](https://scipy.org/) · [AnnData](https://anndata.readthedocs.io/)
 - [SpaGRN](https://github.com/BGI-Qingdao/SpaGRN/tree/61690ca69a766f14c580de5dd47d4bc7b603813a) · [UniST](https://github.com/lanshui98/UniST/tree/a2fd35a70a6080caab5fdd60652242f85059b09a) · [UniST 作者插值教程](https://unist-tutorial.readthedocs.io/en/latest/interpolation.html)
