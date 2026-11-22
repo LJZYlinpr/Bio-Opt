@@ -17,8 +17,8 @@ Reusing, importing, and rerunning an existing baseline are all valid paths. Choo
 
 ## Optimize
 
-- **Propose candidates.** Record each hypothesis, code path, evidence, estimated gain, resource risk, and falsification condition. Rank proposals independently in a common table.
-- **Select directions.** Choose promising, high-priority candidates. Establish correctness requirements, budget, and stopping criteria before handing off an isolated implementation.
+- **Propose candidates.** Record each hypothesis, code path, evidence, estimated gain, resource risk, and falsification condition. Record proposals in a common table and select a bounded pilot set. Rank eligible candidates independently once pilot evidence is available.
+- **Select directions.** Use the evidence and budget to choose a bounded trial set. Establish correctness requirements, budget, and stopping criteria before handing off an isolated implementation.
 - **Track attempts.** Tie each attempt to a direction and save the patch, status, logs, failure evidence, and next action. This supports rollback and avoids repeating the same attempt.
 - **Decide after each batch.** Compare against the strongest verified option. Explore if evidence is incomplete and promising directions remain. Focus verification if one stands out, combine complementary changes, or repair a specific failure. Stop when evidence does not support further gains or the budget is exhausted. Record one primary action and the reason.
 
@@ -28,4 +28,4 @@ Before running, record the hypothesis, smallest meaningful control, inputs, revi
 
 Verify that required metrics are present, values meet the acceptance criteria, raw outputs are traceable, and resources are comparable. Identify pilot results, formal pairs, resource scaling tests, and estimates. Disclose contention, warm-up effects, and other confounders. Compare combined candidates with the reference and standalone changes. Link conclusions to verifiable records and explain why each candidate was accepted, rejected, or deferred.
 
-BioOpt adds biological acceptance criteria, four resource routes for candidate generation, independent evaluation, parallel pilots, and expert and Agent case libraries. The main Skill defines how to assign work and select cases.
+BioOpt starts with a local reproduction, verifies it against the upstream task, and uses expert and Agent trajectories during diagnosis. Parallel pilots and exploratory trials feed an independent review. Passing candidates can enter a separate fusion round before full-scale verification and trajectory archiving. The main Skill specifies the handoffs.

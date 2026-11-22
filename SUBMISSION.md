@@ -6,7 +6,7 @@ BioOpt: An autonomous performance optimization skill for bioinformatics algorith
 
 ## One-sentence description
 
-BioOpt helps AI agents reproduce reference implementations, profile bottlenecks, test optimization candidates, and verify their scientific outputs.
+BioOpt helps AI agents verify locally reproduced implementations, profile bottlenecks, test standalone and combined optimization candidates, and check scientific outputs.
 
 ## Problem
 
@@ -18,7 +18,7 @@ The release includes an importable skill, paired timing and independent output v
 
 ## Technical approach
 
-Use an isolated reproduction environment and fix the inputs, scientific parameters, random state, and output axes required by the task. Profile the reference workflow by stage, propose changes to the identified bottleneck, and run independent output verification for each pair. Record initialization and data movement within the declared timing scope. In SpatialZ, the manual implementation computes cosine scores for eligible donors, moves expression sampling to C++, and hands off each layer between GPU and CPU. Later Agent work grouped MENDER calls to amortize preparation cost. Two paired runs of 12 MERFISH target layers achieved 8.40× and 8.70× generation speedups. XY coordinates, cell labels, and expression matched with a fixed random seed per layer.
+Verify the local reproduction against the upstream task and fix the scientific acceptance criteria and timing boundaries. Use profiling and the expert and Agent trajectory libraries to propose changes, then run isolated pilots and an exploratory follow-up. An independent reviewer filters and ranks the measured candidates. Compare passing standalone changes with compatible combinations in a separate fusion round, then test the best eligible implementation at full scale and archive the evidence. In SpatialZ, the manual implementation computes cosine scores for eligible donors, moves expression sampling to C++, and hands off each layer between GPU and CPU. Later Agent work grouped MENDER calls to amortize preparation cost. Two paired runs of 12 MERFISH target layers achieved 8.40× and 8.70× generation speedups. XY coordinates, cell labels, and expression matched with a fixed random seed per layer.
 
 ## Demo
 

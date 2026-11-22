@@ -1,5 +1,7 @@
 # Expert optimization trajectories
 
+Use these cases to retrieve expert decisions and verification patterns while diagnosing a new task. Archive new run records with their origin and review status. Human approval is required for inclusion in the curated reference cases. [Trajectory format and archive rules](../trajectory-format.md)
+
 ## SpatialZ manual optimization
 
 SpatialZ uses measured spatial coordinates and expression to generate cell positions, cell types, and expression at target depths. The author tutorial uses MERFISH. The production objective was to extend the same generation task to the full ABCA-1 series. The team first used small cases and fixed intermediate outputs to isolate changes, then tested the combined implementation through the generation entry point. [Source, implementation, and verification records](https://github.com/LJZYlinpr/Bio-Opt/tree/main/algorithms/SpatialZ)

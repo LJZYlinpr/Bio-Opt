@@ -6,7 +6,7 @@
 
 **BioOpt: An autonomous performance optimization skill for bioinformatics algorithms, illustrated with spatial omics**
 
-BioOpt guides an AI agent through reproducing a reference implementation, profiling real workloads, testing optimization candidates, and checking that the scientific outputs meet a predefined acceptance standard.
+BioOpt starts with a bioinformatics implementation already reproduced locally, typically by Mira. It verifies that the run solves the intended task, profiles real bottlenecks, and improves performance under predefined scientific acceptance criteria.
 
 ### Import into Mira
 
@@ -20,7 +20,7 @@ You can also upload the packaged skill from the same screen. [Download the .skil
 
 ### Workflow and evidence
 
-The skill adapts the Codex Scout, Baseline, Optimize, and Experiment workflows. It investigates the task, verifies the baseline, fixes the scientific acceptance criteria, proposes candidates from profiling, ranks them independently, and runs small trials before comparing leading candidates and combinations. Candidate routes cover CPU multiprocessing, GPU migration, memory and batching, and scaling from one GPU to multiple GPUs.
+The skill adapts the Codex Scout, Baseline, Optimize, and Experiment workflows. It investigates the upstream task, verifies the local baseline, and uses the expert and Agent trajectory libraries to interpret profiling evidence and propose changes. Parallel small trials and an exploratory follow-up provide evidence for independent review. Candidates that pass can enter a separate fusion round comparing the baseline, standalone changes, and combinations before the best eligible implementation is tested at full scale. [Trajectory format and archive rules](skills/bioopt-auto-optimization/references/trajectory-format.md)
 
 - SpatialZ manual optimization reduced the total core generation time for three MERFISH cases on an A100 from **157.229 to 39.943 seconds (3.94×)**. Coordinates, cell types, MENDER descriptors, and expression matched. [Expert trajectory](skills/bioopt-auto-optimization/references/expert-trajectories/README.md)
 - A subsequent Agent optimization sped up the generation of 12 MERFISH target layers by **8.40× and 8.70×** in two paired runs on a V100. Coordinates, cell types, and expression matched with a fixed seed per layer. Final merge, disk output, and plotting were outside the timed interval. [Agent trajectory](skills/bioopt-auto-optimization/references/agent-trajectories/spatialz-batched-mender.md)
@@ -43,7 +43,7 @@ Open the deployed showcase in a browser. It requires no installation. [Live demo
 
 **BioOpt：面对生物信息学算法的自主计算性能优化 Skill——以空间组学为例**
 
-BioOpt 帮助 AI Agent 复现原版算法、定位真实运行瓶颈、试验优化方案，并依据事先约定的标准验证科学输出。
+BioOpt 接收 Mira 已在本地跑通的生物信息学算法复现。先复核它是否完成目标任务，再定位性能瓶颈，并依据事先约定的标准验证优化后的科学输出。
 
 ### 导入 Mira
 
@@ -57,7 +57,7 @@ https://github.com/LJZYlinpr/Bio-Opt/tree/main/skills/bioopt-auto-optimization
 
 ### 方法与成果
 
-BioOpt 借鉴 Codex 的任务核验、基线验收、候选筛选和实验复核流程。先查清任务、验证基线并约定验收标准，再根据剖析结果提出候选，经独立排序、小试和交叉复测筛选方案。候选覆盖 CPU 多进程、CPU 转 GPU、内存与批处理，以及单卡优化和多卡扩展。
+BioOpt 借鉴 Codex 的任务核验、基线验收、候选筛选和实验复核流程。调研并复核本地基线后，结合性能剖析和专家、Agent 两个轨迹库提出候选。先并行小试，再用探索轮检验替代思路，由独立审核模型根据实测证据过滤和排序。通过审核的互补方案进入一轮融合改进，比较原版、单项和组合，再把表现最好的合格方案推进到全量实验。所有尝试及取舍都写回轨迹。[轨迹格式与归档规则](skills/bioopt-auto-optimization/references/trajectory-format.md)
 
 - SpatialZ 人工优化在 A100 上将三组 MERFISH 核心生成的总用时从 **157.229 秒降到 39.943 秒（3.94 倍）**，坐标、细胞类型、MENDER 描述符和表达一致。[专家轨迹](skills/bioopt-auto-optimization/references/expert-trajectories/README.md)
 - 后续 Agent 优化在 V100 上进行两轮 12 层 MERFISH 生成配对，分别提速 **8.40 倍和 8.70 倍**。固定每层随机种子后，坐标、细胞类型和表达一致。最终合并写盘和绘图另计。[Agent 轨迹](skills/bioopt-auto-optimization/references/agent-trajectories/spatialz-batched-mender.md)

@@ -1,5 +1,7 @@
 # Agent optimization trajectories
 
+Use this library to retrieve additional optimization mechanisms and failure cases during diagnosis. Record new experiments using the same schema, including raw pilot evidence and review outcomes. [Trajectory format and archive rules](../trajectory-format.md)
+
 | Case | What it shows | Evidence |
 |---|---|---|
 | [SpatialZ batched MENDER](spatialz-batched-mender.md) | How a slower caching attempt redirected profiling and how a randomized baseline was repaired. | Stage profiles, rejected candidates, and paired trials on individual slice pairs and 12 target layers. |
