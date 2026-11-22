@@ -14,7 +14,7 @@ BioOpt｜保持科学结果的算法性能优化 Skill
 
 ## 已实现功能
 
-提供可导入 Skill、自动配对计时与独立输出检查，以及可离线交互的 SpatialZ 六步演示。仓库包含 SpatialZ 作者原版、手工优化实现、后续批量 MENDER 的配对代码，以及 KiloCode 的 SpaGRN 数据搬运优化和 UniST 线程配置对照。SpaGRN 全量旧用时为外推，实际验证范围在代码目录列明。
+提供可导入 Skill、自动配对计时与独立输出检查，以及展示方法、优化逻辑与实测成果的静态网页，并保留可离线交互的 SpatialZ 六步演示。仓库包含 SpatialZ 作者原版、手工优化实现、后续批量 MENDER 的配对代码，以及 KiloCode 的 SpaGRN 数据搬运优化和 UniST 线程配置对照。SpaGRN 全量旧用时为外推，实际验证范围在代码目录列明。
 
 ## 核心技术方案
 
@@ -22,7 +22,7 @@ BioOpt｜保持科学结果的算法性能优化 Skill
 
 ## Demo 链接
 
-[在线 Demo](https://ljzylinpr.github.io/Bio-Opt/)。现场网络不稳定时可[下载 HTML](https://github.com/LJZYlinpr/Bio-Opt/raw/refs/heads/main/docs/index.html)，用浏览器离线打开，方向键翻页。
+[在线 Demo](https://ljzylinpr.github.io/Bio-Opt/)。现场网络不稳定时可[下载 HTML](https://github.com/LJZYlinpr/Bio-Opt/raw/refs/heads/main/docs/index.html)，用浏览器离线打开。另有 [SpatialZ 六步交互讲解](https://ljzylinpr.github.io/Bio-Opt/spatialz-story.html)，支持方向键翻页。
 
 ## 代码仓库
 
