@@ -1,0 +1,133 @@
+{
+  "contract": "np.random.seed(42) before each stock call; synth_cpp(seed=42)",
+  "pairs": [
+    {
+      "pair": [
+        "0.04",
+        "0.09"
+      ],
+      "stock_s": 419.478,
+      "ours_s": 48.057,
+      "layers": [
+        {
+          "j": 1,
+          "expr_exact": true,
+          "expr_diff": 0,
+          "xy_exact": true,
+          "labels_exact": true
+        },
+        {
+          "j": 2,
+          "expr_exact": true,
+          "expr_diff": 0,
+          "xy_exact": true,
+          "labels_exact": true
+        },
+        {
+          "j": 3,
+          "expr_exact": true,
+          "expr_diff": 0,
+          "xy_exact": true,
+          "labels_exact": true
+        }
+      ]
+    },
+    {
+      "pair": [
+        "0.09",
+        "0.14"
+      ],
+      "stock_s": 440.878,
+      "ours_s": 51.086,
+      "layers": [
+        {
+          "j": 1,
+          "expr_exact": true,
+          "expr_diff": 0,
+          "xy_exact": true,
+          "labels_exact": true
+        },
+        {
+          "j": 2,
+          "expr_exact": true,
+          "expr_diff": 0,
+          "xy_exact": true,
+          "labels_exact": true
+        },
+        {
+          "j": 3,
+          "expr_exact": true,
+          "expr_diff": 0,
+          "xy_exact": true,
+          "labels_exact": true
+        }
+      ]
+    },
+    {
+      "pair": [
+        "0.14",
+        "0.19"
+      ],
+      "stock_s": 451.329,
+      "ours_s": 51.444,
+      "layers": [
+        {
+          "j": 1,
+          "expr_exact": true,
+          "expr_diff": 0,
+          "xy_exact": true,
+          "labels_exact": true
+        },
+        {
+          "j": 2,
+          "expr_exact": true,
+          "expr_diff": 0,
+          "xy_exact": true,
+          "labels_exact": true
+        },
+        {
+          "j": 3,
+          "expr_exact": true,
+          "expr_diff": 0,
+          "xy_exact": true,
+          "labels_exact": true
+        }
+      ]
+    },
+    {
+      "pair": [
+        "0.19",
+        "0.24"
+      ],
+      "stock_s": 430.393,
+      "ours_s": 49.737,
+      "layers": [
+        {
+          "j": 1,
+          "expr_exact": true,
+          "expr_diff": 0,
+          "xy_exact": true,
+          "labels_exact": true
+        },
+        {
+          "j": 2,
+          "expr_exact": true,
+          "expr_diff": 0,
+          "xy_exact": true,
+          "labels_exact": true
+        },
+        {
+          "j": 3,
+          "expr_exact": true,
+          "expr_diff": 0,
+          "xy_exact": true,
+          "labels_exact": true
+        }
+      ]
+    }
+  ],
+  "stock_total_s": 1742.078,
+  "ours_total_s": 200.323,
+  "speedup": 8.696,
+  "all_layers_exact": true
+}

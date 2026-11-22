@@ -1,0 +1,75 @@
+{
+  "dataset": "official Spatial dense data construction MERFISH",
+  "config": {
+    "lr": 1e-05,
+    "num_projections": 80,
+    "Beta": 1,
+    "iterations": 1000,
+    "k_sam": 50,
+    "syn_mode": "default",
+    "seed": 42,
+    "stock_workers": 200,
+    "optimized_workers": 32
+  },
+  "source_sha256": "58cf0b6812d74d05dbff9d105f9b7718a00d71f502b9e723990fcc3b967d63ff",
+  "gpu": "NVIDIA A100-SXM4-40GB",
+  "cases": [
+    {
+      "left": 1,
+      "right": 2,
+      "alpha": 0.75,
+      "cells": 5505,
+      "genes": 155,
+      "xy_exact": true,
+      "labels_exact": true,
+      "mender_exact": [
+        true,
+        true,
+        true
+      ],
+      "expression_exact": true,
+      "expression_different_entries": 0,
+      "expression_max_abs_error": 0.0,
+      "stock_wall_seconds": 53.7635062020272,
+      "optimized_wall_seconds": 12.924535866826773
+    },
+    {
+      "left": 2,
+      "right": 3,
+      "alpha": 0.5,
+      "cells": 5741,
+      "genes": 155,
+      "xy_exact": true,
+      "labels_exact": true,
+      "mender_exact": [
+        true,
+        true,
+        true
+      ],
+      "expression_exact": true,
+      "expression_different_entries": 0,
+      "expression_max_abs_error": 0.0,
+      "stock_wall_seconds": 51.894320484250784,
+      "optimized_wall_seconds": 13.693638349883258
+    },
+    {
+      "left": 4,
+      "right": 5,
+      "alpha": 0.25,
+      "cells": 5608,
+      "genes": 155,
+      "xy_exact": true,
+      "labels_exact": true,
+      "mender_exact": [
+        true,
+        true,
+        true
+      ],
+      "expression_exact": true,
+      "expression_different_entries": 0,
+      "expression_max_abs_error": 0.0,
+      "stock_wall_seconds": 51.571392845362425,
+      "optimized_wall_seconds": 13.324923275969923
+    }
+  ]
+}

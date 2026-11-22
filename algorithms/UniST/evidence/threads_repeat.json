@@ -1,0 +1,87 @@
+{
+  "sequence": [
+    2,
+    4,
+    8,
+    2,
+    4,
+    8
+  ],
+  "all_identical": true,
+  "unique_sha": [
+    "595af45f1599653ceb867375e885952df3800f146bd8cff76c98b50b470373eb"
+  ],
+  "runs": [
+    {
+      "threads": 2,
+      "tag": "2_r0",
+      "total_s": 6.332,
+      "volume_sha": "595af45f1599653ceb867375e885952df3800f146bd8cff76c98b50b470373eb",
+      "steps": {
+        "convert": 0.111,
+        "interp": 6.108,
+        "merge": 0.114
+      }
+    },
+    {
+      "threads": 4,
+      "tag": "4_r0",
+      "total_s": 5.757,
+      "volume_sha": "595af45f1599653ceb867375e885952df3800f146bd8cff76c98b50b470373eb",
+      "steps": {
+        "convert": 0.109,
+        "interp": 5.543,
+        "merge": 0.105
+      }
+    },
+    {
+      "threads": 8,
+      "tag": "8_r0",
+      "total_s": 5.565,
+      "volume_sha": "595af45f1599653ceb867375e885952df3800f146bd8cff76c98b50b470373eb",
+      "steps": {
+        "convert": 0.099,
+        "interp": 5.316,
+        "merge": 0.15
+      }
+    },
+    {
+      "threads": 2,
+      "tag": "2_r1",
+      "total_s": 6.241,
+      "volume_sha": "595af45f1599653ceb867375e885952df3800f146bd8cff76c98b50b470373eb",
+      "steps": {
+        "convert": 0.099,
+        "interp": 6.036,
+        "merge": 0.106
+      }
+    },
+    {
+      "threads": 4,
+      "tag": "4_r1",
+      "total_s": 5.52,
+      "volume_sha": "595af45f1599653ceb867375e885952df3800f146bd8cff76c98b50b470373eb",
+      "steps": {
+        "convert": 0.098,
+        "interp": 5.317,
+        "merge": 0.104
+      }
+    },
+    {
+      "threads": 8,
+      "tag": "8_r1",
+      "total_s": 5.026,
+      "volume_sha": "595af45f1599653ceb867375e885952df3800f146bd8cff76c98b50b470373eb",
+      "steps": {
+        "convert": 0.099,
+        "interp": 4.822,
+        "merge": 0.105
+      }
+    }
+  ],
+  "mean_by_threads": {
+    "2": 6.287,
+    "4": 5.638,
+    "8": 5.296
+  }
+}

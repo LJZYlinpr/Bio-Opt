@@ -1,0 +1,86 @@
+{
+  "state": "PASS",
+  "pair": "z006_z007",
+  "cells_at_two_endpoints": 15788,
+  "expression_written_before_next_geometry": true,
+  "rows": [
+    {
+      "z_um": 560,
+      "geometry_mtime_ns": 1795168859000000000,
+      "expression_mtime_ns": 1795168864000000000,
+      "exact_vs_prior": {
+        "X/data": true,
+        "X/indices": true,
+        "X/indptr": true,
+        "obsm/spatial": true,
+        "obs/cell_class/codes": true,
+        "obs/cell_class/categories": true,
+        "var/_index": true
+      },
+      "cpu_rss_mib": {
+        "candidate_seconds": 0.08494127355515957,
+        "cpp_kernel_seconds": 0.02009151130914688,
+        "rows_without_candidates": 0,
+        "rss_before_release_mib": 916.75,
+        "rss_after_release_mib": 769.55
+      },
+      "gpu_mib": {
+        "peak_allocated": 330.9248046875,
+        "after_allocated": 16.2509765625,
+        "after_reserved": 42.0
+      }
+    },
+    {
+      "z_um": 580,
+      "geometry_mtime_ns": 1795168878000000000,
+      "expression_mtime_ns": 1795168882000000000,
+      "exact_vs_prior": {
+        "X/data": true,
+        "X/indices": true,
+        "X/indptr": true,
+        "obsm/spatial": true,
+        "obs/cell_class/codes": true,
+        "obs/cell_class/categories": true,
+        "var/_index": true
+      },
+      "cpu_rss_mib": {
+        "candidate_seconds": 0.08496780693531036,
+        "cpp_kernel_seconds": 0.02151188999414444,
+        "rows_without_candidates": 0,
+        "rss_before_release_mib": 951.71,
+        "rss_after_release_mib": 764.82
+      },
+      "gpu_mib": {
+        "peak_allocated": 329.3525390625,
+        "after_allocated": 16.2509765625,
+        "after_reserved": 42.0
+      }
+    },
+    {
+      "z_um": 600,
+      "geometry_mtime_ns": 1795168896000000000,
+      "expression_mtime_ns": 1795168901000000000,
+      "exact_vs_prior": {
+        "X/data": true,
+        "X/indices": true,
+        "X/indptr": true,
+        "obsm/spatial": true,
+        "obs/cell_class/codes": true,
+        "obs/cell_class/categories": true,
+        "var/_index": true
+      },
+      "cpu_rss_mib": {
+        "candidate_seconds": 0.08136882074177265,
+        "cpp_kernel_seconds": 0.01803676411509514,
+        "rows_without_candidates": 0,
+        "rss_before_release_mib": 941.04,
+        "rss_after_release_mib": 790.23
+      },
+      "gpu_mib": {
+        "peak_allocated": 327.396484375,
+        "after_allocated": 16.2509765625,
+        "after_reserved": 42.0
+      }
+    }
+  ]
+}

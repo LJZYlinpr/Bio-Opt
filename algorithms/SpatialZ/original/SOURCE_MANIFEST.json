@@ -1,0 +1,11 @@
+{
+  "repository": "https://github.com/senlin-lin/SpatialZ",
+  "commit": "e1b5ed01e933729149e08399febca08db16ced14",
+  "materialized_from_git_object": "HEAD",
+  "files": [
+    {
+      "path": "SpatialZ.py",
+      "sha256": "58cf0b6812d74d05dbff9d105f9b7718a00d71f502b9e723990fcc3b967d63ff"
+    }
+  ]
+}
